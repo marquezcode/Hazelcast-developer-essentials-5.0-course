@@ -34,5 +34,29 @@ public class Client2 {
          * Print the result to the console
          */
         System.out.println("Entry 42 is: " + entry42);
+
+        /**
+         * Convert entry 42
+         */
+        training.put(42, "Transformed entry");
+
+        /**
+         * Print converted entry
+         */
+        System.out.println("Modified entry 42 is: " + training.get(42));
+        for (int i = 0; i < 1000; i++) {
+            int key = i;
+            String value = training.get(key);;
+            value = value + "transform " + key;
+
+            /**
+             * Put the entry into the map
+             */
+            if(key == 42){
+                value = "overwrite-test";
+            }
+            training.put(key, value);
+            System.out.println(training.get(key));
+        }
     }
 }

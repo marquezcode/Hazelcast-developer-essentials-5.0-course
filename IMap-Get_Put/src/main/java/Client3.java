@@ -6,10 +6,10 @@ import com.hazelcast.config.MapConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
-public class Client1 {
+public class Client3 {
 
     public static void main(String[] args) {
-       //setup local cluster config
+        //setup local cluster config
         Config config = new Config();
         config.getNetworkConfig().setPort(5701).setPortAutoIncrement(true).setPortCount(20);
 
@@ -40,3 +40,4 @@ public class Client1 {
         System.out.println("Training map populated successfully!");
     }
 }
+
