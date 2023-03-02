@@ -2,6 +2,9 @@ package hazelcast;
 
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.config.Config;
+import com.hazelcast.config.MapConfig;
+import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 import com.hazelcast.query.impl.predicates.SqlPredicate;
@@ -14,15 +17,20 @@ public class Client {
     public static void main(String[] args) {
         // If you are using the cloud to host your cluster, make sure you add the client credentials!
         // Setting up cloud configuration
-        ClientConfig config = new ClientConfig();
+        Config config = new Config();
         config.setProperty("hazelcast.client.statistics.enabled","true");
+        config.getNetworkConfig().setPort(5701).setPortAutoIncrement(true).setPortCount(20);
+
+        MapConfig mapConfig = new MapConfig();
+        mapConfig.setName("training-queries").setBackupCount(2).setTimeToLiveSeconds(300);
+        config.addMapConfig(mapConfig);
        // config.setProperty(ClientProperty.HAZELCAST_CLOUD_DISCOVERY_TOKEN.getName(), "YOUR_CLOUD_DISCOVERY_TOKEN");
        // config.setClusterName("YOUR_CLUSTER_NAME");
 
         //adding Employee factory to populate map
         config.getSerializationConfig().addPortableFactoryClass(Employee.FACTORY_ID, Employee.EmployeeFactory.class);
         // Create Hazelcast instance which is backed by a client
-        HazelcastInstance client = HazelcastClient.newHazelcastClient(config);
+        HazelcastInstance client = Hazelcast.newHazelcastInstance(config);
 
         // Create a Hazelcast backed map
         IMap<Integer, Employee> map = client.getMap("training-queries");
@@ -35,6 +43,7 @@ public class Client {
         for (int i = 0; i < 100; i++) {
             Employee emp = new Employee(20 + new Random().nextInt(30), new Random().nextInt(5000));
             map.set(i, emp);
+            System.out.println(map.get(i));
         }
         long delta1 = System.currentTimeMillis() - start1;
 
@@ -47,7 +56,7 @@ public class Client {
         /**
          * SQL Predicate
          */
-        SqlPredicate p1 = new SqlPredicate("salary between 0 and 2000");
+        SqlPredicate p1 = new SqlPredicate("salary >=0 AND salary <= 2000");
 
         /**
          * Boolean predicate
