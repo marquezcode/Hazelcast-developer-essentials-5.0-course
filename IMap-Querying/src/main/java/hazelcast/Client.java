@@ -15,8 +15,7 @@ import java.util.Random;
 public class Client {
 
     public static void main(String[] args) {
-        // If you are using the cloud to host your cluster, make sure you add the client credentials!
-        // Setting up cloud configuration
+        // Setting up local cluster configuration
         Config config = new Config();
         config.setProperty("hazelcast.client.statistics.enabled","true");
         config.getNetworkConfig().setPort(5701).setPortAutoIncrement(true).setPortCount(20);
@@ -24,8 +23,7 @@ public class Client {
         MapConfig mapConfig = new MapConfig();
         mapConfig.setName("training-queries").setBackupCount(2).setTimeToLiveSeconds(300);
         config.addMapConfig(mapConfig);
-       // config.setProperty(ClientProperty.HAZELCAST_CLOUD_DISCOVERY_TOKEN.getName(), "YOUR_CLOUD_DISCOVERY_TOKEN");
-       // config.setClusterName("YOUR_CLUSTER_NAME");
+
 
         //adding Employee factory to populate map
         config.getSerializationConfig().addPortableFactoryClass(Employee.FACTORY_ID, Employee.EmployeeFactory.class);
