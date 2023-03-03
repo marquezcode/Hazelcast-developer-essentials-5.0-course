@@ -1,7 +1,10 @@
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.properties.ClientProperty;
+import com.hazelcast.config.Config;
+import com.hazelcast.config.MapConfig;
 import com.hazelcast.core.EntryEvent;
+import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 import com.hazelcast.map.listener.EntryAddedListener;
@@ -11,16 +14,22 @@ import com.hazelcast.map.listener.EntryUpdatedListener;
 public class Listener {
 
     public static void main(String[] args) {
-        ClientConfig config = new ClientConfig();
+        // Setting up local cluster configuration
+        Config config = new Config();
         config.setProperty("hazelcast.client.statistics.enabled","true");
-        // Add your cloud token and cluster name below. If using a local cluster, comment these lines out
-        config.setProperty(ClientProperty.HAZELCAST_CLOUD_DISCOVERY_TOKEN.getName(), "YOUR_CLUSTER_TOKEN");
-        config.setClusterName("YOUR_CLUSTER_NAME");
+        config.getNetworkConfig().setPort(5701).setPortAutoIncrement(true).setPortCount(20);
 
-        HazelcastInstance hz = HazelcastClient.newHazelcastClient(config);
+        MapConfig mapConfig = new MapConfig();
+        mapConfig.setName("someMap").setBackupCount(2).setTimeToLiveSeconds(300);
+        config.addMapConfig(mapConfig);
+        config.setClusterName("dev");
+
+        // Create Hazelcast instance which is backed by a client
+        HazelcastInstance client;
+        client = Hazelcast.newHazelcastInstance(config);
 
         // Create map and add listener
-        IMap<String, String> map = hz.getMap("someMap");
+        IMap<String, String> map = client.getMap("someMap");
         map.addEntryListener(new MyEntryListener(), true);
         System.out.println("EntryListener registered");
     }

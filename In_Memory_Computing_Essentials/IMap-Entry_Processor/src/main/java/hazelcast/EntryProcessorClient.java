@@ -2,29 +2,39 @@ package hazelcast;
 
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.client.config.ClientUserCodeDeploymentConfig;
 import com.hazelcast.client.properties.ClientProperty;
+import com.hazelcast.config.Config;
+import com.hazelcast.config.MapConfig;
+import com.hazelcast.config.UserCodeDeploymentConfig;
+import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
+
+import static com.sun.org.apache.bcel.internal.Repository.addClass;
 
 public class EntryProcessorClient {
 
     public static void main(String[] args) {
-        // If you are using the cloud to host your cluster, make sure you add the client credentials!
-        // Setting up cloud configuration
-        ClientConfig config = new ClientConfig();
+        // Setting up local cluster configuration
+        Config config = new Config();
         config.setProperty("hazelcast.client.statistics.enabled","true");
-        config.setProperty(ClientProperty.HAZELCAST_CLOUD_DISCOVERY_TOKEN.getName(), "YOUR_CLOUD_TOKEN");
-        config.setClusterName("YOUR_CLUSTER_NAME");
+        config.getNetworkConfig().setPort(5701).setPortAutoIncrement(true).setPortCount(20);
+
+        MapConfig mapConfig = new MapConfig();
+        mapConfig.setName("employees").setBackupCount(2).setTimeToLiveSeconds(300);
+        config.addMapConfig(mapConfig);
+        config.setClusterName("dev");
 
         // Pushing user code to cluster
-        config.getUserCodeDeploymentConfig()
-                .setEnabled(true)
-                .addClass(Employee.class)
-                .addClass(SalaryIncreaseEntryProcessor.class);
+        UserCodeDeploymentConfig userCodeDeploymentConfig = new UserCodeDeploymentConfig();
+        userCodeDeploymentConfig.setEnabled(true);
 
+        config.setUserCodeDeploymentConfig(userCodeDeploymentConfig);
 
         // Create Hazelcast instance which is backed by a client
-        HazelcastInstance client = HazelcastClient.newHazelcastClient(config);
+        HazelcastInstance client;
+        client = Hazelcast.newHazelcastInstance(config);
 
         // Create a Hazelcast backed map
         IMap<String, Employee> employees = client.getMap("employees");
@@ -92,6 +102,8 @@ public class EntryProcessorClient {
          * Using EP, increment the salary of each employee by a fixed integer value
          * */
         employees.executeOnEntries(new SalaryIncreaseEntryProcessor());
+
+
 
         // Read the salaries of all employees to see the change
         for (IMap.Entry<String, Employee> entry : employees.entrySet()) {
