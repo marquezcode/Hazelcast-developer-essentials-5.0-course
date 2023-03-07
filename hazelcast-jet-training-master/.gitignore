@@ -1,0 +1,15 @@
+.clover/
+target/
+build/
+.project
+.classpath
+.settings/
+.idea/
+.patch
+.surefire-*
+*.iml
+*.ipr
+*.iws
+.DS_Store
+dependency-reduced-pom.xml
+

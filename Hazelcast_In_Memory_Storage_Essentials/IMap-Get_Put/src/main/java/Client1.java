@@ -33,7 +33,8 @@ public class Client1 {
              * Put the entry into the map
              */
             if(key == 42){
-                value = "overwrite-test";
+                value = training.get(42);
+                String valu = value.clone
             }
             training.put(key, value);
         }
