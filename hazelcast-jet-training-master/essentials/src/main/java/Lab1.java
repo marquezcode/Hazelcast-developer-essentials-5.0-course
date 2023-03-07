@@ -15,12 +15,15 @@
  * limitations under the License.
  */
 
+import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.jet.pipeline.Pipeline;
-import com.hazelcast.jet.pipeline.Sinks;
-import com.hazelcast.jet.pipeline.StreamSource;
+import com.hazelcast.jet.pipeline.*;
+import com.hazelcast.jet.pipeline.file.FileSources;
 import com.hazelcast.jet.pipeline.test.TestSources;
+import com.hazelcast.jet.pipeline.test.SimpleEvent;
+import com.hazelcast.map.IMap;
+import com.hazelcast.map.impl.KeyValueConsumingEntryProcessor;
 
 public class Lab1 {
 
@@ -36,12 +39,21 @@ public class Lab1 {
 
         StreamSource<Long> source = TestSources.itemStream(1, (ts, seq) -> seq);
 
-        p.readFrom(source)
-         .withoutTimestamps()
+        //BatchSource<String> presource = Sources.files("/home/gerard/IdeaProjects/Hazelcast developer essentials/hazelcast-jet-training-master/test.txt").build();
+        String directory = "/home/gerard/IdeaProjects/Hazelcast developer essentials/hazelcast-jet-training-master/test";
+
+        p.readFrom(Sources.fileWatcher(directory))
+                .withoutTimestamps()
+                .map( event -> Long.parseLong(event))
+                .filter( event -> event % 2 == 0)
+                .setName("Filter out odd numbers")
          .writeTo(Sinks.logger());
 
         // Run the code to see the results in the console
         // Stop it before leaving the lab
+
+        // STEP 2: Filter out odd numbers from the stream
+        //BatchStage<String> odds = odds.filter( number -> !(number % 2 = 0));
 
         return p;
     }
